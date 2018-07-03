@@ -1317,6 +1317,7 @@ if __name__ == '__main__':
 
     im = cv2.imread('./imgs/img_18.jpg')
     once_detective_pipline(im)
+    # test
 
     # cap = cv2.VideoCapture(0)
     # if not cap.isOpened():
