@@ -5,6 +5,7 @@ import time
 import copy
 import tensorflow as tf
 import wirte_TF_records
+import re
 
 PATH = '/home/jr/Downloads'
 
@@ -324,15 +325,78 @@ def save_samples(img_paths, img_GTs, sample_type):
         writer_48[i].close()
 
 
-# def from_celebA_import_landmark():
-#     landmarks_PATH = '/home/jr/Downloads/celebA/list_landmarks_celeba.txt'
-#     bbox_PATH = '/home/jr/Downloads/celebA/list_bbox_celeba.txt'
-#     img_PATH='/media/jr/Re/celebA_data/'
-#     with open(bbox_PATH, 'r') as bbox_list:
-#         b_lines = bbox_list.readlines()
-#     with open(landmarks_PATH, 'r') as landmarks_list:
-#         l_lines = landmarks_list.readlines()
-#     a = 1
+def from_celebA_import_landmark_data(sample_type):
+    landmarks_PATH = '/home/jr/Downloads/celebA/list_landmarks_celeba.txt'
+    bbox_PATH = '/home/jr/Downloads/celebA/list_bbox_celeba.txt'
+    img_PATH = '/media/jr/Re/celebA_data/img_celeba'
+    writer = tf.python_io.TFRecordWriter('./data/%s_48_landmark.tfrecords' % sample_type)
+    with open(bbox_PATH, 'r') as bbox_list:
+        b_lines = bbox_list.readlines()
+    with open(landmarks_PATH, 'r') as landmarks_list:
+        l_lines = landmarks_list.readlines()
+    index_start = 2 if sample_type == 'train' else 200000
+    index_end = 200000 if sample_type == 'train' else len(b_lines)
+    index = index_start
+    for line in b_lines[index_start:index_end]:
+        im = cv2.imread(join(img_PATH, line.strip()[:10]))
+        im_HEIGHT, im_WIDTH = im.shape[0:2]
+        im_extend = np.zeros([im_HEIGHT * 3, im_WIDTH * 3, 3], dtype=np.uint8)
+        im_extend[im_HEIGHT:(im_HEIGHT * 2), im_WIDTH:(im_WIDTH * 2)] = im
+        if index % 100 == 0:
+            print(index)
+        # noise it's necessary
+        x_n = np.random.randint(im_WIDTH / 30)
+        y_n = np.random.randint(im_HEIGHT / 30)
+        # x_n = 0
+        # y_n = 0
+        x = int(re.findall('\d+', line.strip()[10:])[0])
+        y = int(re.findall('\d+', line.strip()[10:])[1])
+        w = int(int(re.findall('\d+', line.strip()[10:])[2]) * (np.random.random() * 0.6 + 0.7))
+        h = int(int(re.findall('\d+', line.strip()[10:])[3]) * (np.random.random() * 0.6 + 0.7))
+        x1 = x - int(h / 1.3 / 2) + im_WIDTH + int(w / 2) + x_n
+        y1 = y + im_HEIGHT + y_n
+        x2 = x + int(h / 1.3 / 2) + im_WIDTH + int(w / 2) + x_n
+        y2 = y + int(h / 1.3) + im_HEIGHT + y_n
+        im = cv2.rectangle(im, (x1, y1),
+                           (x2, y2),
+                           (0, 0, 255))
+        im_quar = im_extend[y1:y2, x1: x2]
+        if len(im_quar) == 0:
+            print('error')
+            continue
+        im_HEIGHT_squar = im_quar.shape[0]
+        im_quar = cv2.resize(im_quar, (48, 48))
+        # cv2.imshow('testt', im_quar)
+        scale = im_HEIGHT_squar / 48.
+
+        landmark_point = []
+        landmark_point.append(
+            (int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[0]) - x1 + im_WIDTH) / scale)),
+             int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[1]) - y1 + im_HEIGHT) / scale))))
+        landmark_point.append(
+            (int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[2]) - x1 + im_WIDTH) / scale)),
+             int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[3]) - y1 + im_HEIGHT) / scale))))
+        landmark_point.append(
+            (int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[4]) - x1 + im_WIDTH) / scale)),
+             int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[5]) - y1 + im_HEIGHT) / scale))))
+        landmark_point.append(
+            (int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[6]) - x1 + im_WIDTH) / scale)),
+             int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[7]) - y1 + im_HEIGHT) / scale))))
+        landmark_point.append(
+            (int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[8]) - x1 + im_WIDTH) / scale)),
+             int(np.round((int(re.findall('\d+', l_lines[index].strip()[10:])[9]) - y1 + im_HEIGHT) / scale))))
+        # do not run down code when prepare data only for test
+        # im_landmark = cv2.circle(im_quar, landmark_point[0], 1, (255, 0, 0), 1)
+        # im_landmark = cv2.circle(im_landmark, landmark_point[1], 1, (255, 0, 0), 1)
+        # im_landmark = cv2.circle(im_landmark, landmark_point[2], 1, (255, 0, 0), 1)
+        # im_landmark = cv2.circle(im_landmark, landmark_point[3], 1, (255, 0, 0), 1)
+        # im_landmark = cv2.circle(im_landmark, landmark_point[4], 1, (255, 0, 0), 1)
+
+        wirte_TF_records.from_celebA_set_import_tfrecords(im_quar, landmark_point, writer)
+        # cv2.imshow('test', im_landmark)
+        # cv2.waitKey()
+        index += 1
+    writer.close()
 
 
 if __name__ == '__main__':
@@ -340,6 +404,7 @@ if __name__ == '__main__':
     # data_list = from_file_import_datalist(sample_type)
     # img_paths, img_GTs = from_datalist_import_im_GT(data_list)
     # save_samples(img_paths, img_GTs, sample_type)
-    from_celebA_import_landmark()
 
-    a = 1
+    from_celebA_import_landmark_data('train')
+
+a = 1

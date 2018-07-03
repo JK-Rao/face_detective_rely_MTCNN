@@ -52,3 +52,13 @@ def from_rect_sample_import_tfrecords(rect_sample_scale, writer_48, writer_24, w
                     elif scale == 12:
                         writer_12[sample_label].write(example.SerializeToString())
     return num
+
+
+def from_celebA_set_import_tfrecords(im, landmark, wirter):
+    im_raw = im.astype(np.uint8).tostring()
+    landmark_array = np.array(landmark)
+    landmark_raw = landmark_array.astype(np.int32).tostring()
+    example = tf.train.Example(features=tf.train.Features(feature={
+        'im_raw': _bytes_feature(im_raw),
+        'landmark_raw': _bytes_feature(landmark_raw)}))
+    wirter.write(example.SerializeToString())
