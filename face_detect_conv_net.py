@@ -124,42 +124,48 @@ def init_par_o():
                              'conv_o_4': tf.Variable(tf.random_normal([2, 2, 64, 128]), name='conv_o_4'),
                              'full_o_5': tf.Variable(tf.random_normal([3 * 3 * 128, 256]), name='full_o_5'),
                              'full_o_cls': tf.Variable(tf.random_normal([256, 2]), name='full_o_cls'),
-                             'full_o_reg': tf.Variable(tf.random_normal([256, 4]), name='full_o_reg')}
+                             'full_o_reg': tf.Variable(tf.random_normal([256, 4]), name='full_o_reg'),
+                             'full_o_fll': tf.Variable(tf.random_normal([256, 10]), name='full_o_fll')}
         conv_o_par_bias = {'bias_o_1': tf.Variable(tf.random_normal([32]), name='bias_o_1'),
                            'bias_o_2': tf.Variable(tf.random_normal([64]), name='bias_o_2'),
                            'bias_o_3': tf.Variable(tf.random_normal([64]), name='bias_o_3'),
                            'bias_o_4': tf.Variable(tf.random_normal([128]), name='bias_o_4'),
                            'bias_o_5': tf.Variable(tf.random_normal([256]), name='bias_o_5'),
                            'bias_o_cls': tf.Variable(tf.random_normal([2]), name='bias_o_cls'),
-                           'bias_o_reg': tf.Variable(tf.random_normal([4]), name='bias_o_reg')}
+                           'bias_o_reg': tf.Variable(tf.random_normal([4]), name='bias_o_reg'),
+                           'bias_o_fll': tf.Variable(tf.random_normal([10]), name='bias_o_fll')}
         conv_o_par_scale_par = {'bns_o_1': tf.Variable(tf.ones([32]), name='bns_o_1'),
                                 'bns_o_2': tf.Variable(tf.ones([64]), name='bns_o_2'),
                                 'bns_o_3': tf.Variable(tf.ones([64]), name='bns_o_3'),
                                 'bns_o_4': tf.Variable(tf.ones([128]), name='bns_o_4'),
                                 'bns_o_5': tf.Variable(tf.ones([256]), name='bns_o_5'),
                                 'bns_o_cls': tf.Variable(tf.ones([2]), name='bns_o_cls'),
-                                'bns_o_reg': tf.Variable(tf.ones([4]), name='bns_o_reg')}
+                                'bns_o_reg': tf.Variable(tf.ones([4]), name='bns_o_reg'),
+                                'bns_o_fll': tf.Variable(tf.ones([10]), name='bns_o_fll')}
         conv_o_par_offset_par = {'bno_o_1': tf.Variable(tf.zeros([32]), name='bno_o_1'),
                                  'bno_o_2': tf.Variable(tf.zeros([64]), name='bno_o_2'),
                                  'bno_o_3': tf.Variable(tf.zeros([64]), name='bno_o_3'),
                                  'bno_o_4': tf.Variable(tf.zeros([128]), name='bno_o_4'),
                                  'bno_o_5': tf.Variable(tf.zeros([256]), name='bno_o_5'),
                                  'bno_o_cls': tf.Variable(tf.zeros([2]), name='bno_o_cls'),
-                                 'bno_o_reg': tf.Variable(tf.zeros([4]), name='bno_o_reg')}
+                                 'bno_o_reg': tf.Variable(tf.zeros([4]), name='bno_o_reg'),
+                                 'bno_o_fll': tf.Variable(tf.zeros([10]), name='bno_o_fll')}
         conv_o_par_me_EMA = {'conv_me_o_1': tf.Variable(tf.zeros([32]), trainable=False, name='conv_me_o_1'),
                              'conv_me_o_2': tf.Variable(tf.zeros([64]), trainable=False, name='conv_me_o_2'),
                              'conv_me_o_3': tf.Variable(tf.zeros([64]), trainable=False, name='conv_me_o_3'),
                              'conv_me_o_4': tf.Variable(tf.zeros([128]), trainable=False, name='conv_me_o_4'),
                              'conv_me_o_5': tf.Variable(tf.zeros([256]), trainable=False, name='conv_me_o_5'),
                              'conv_me_o_cls': tf.Variable(tf.zeros([2]), trainable=False, name='conv_me_o_cls'),
-                             'conv_me_o_reg': tf.Variable(tf.zeros([4]), trainable=False, name='conv_me_o_reg')}
+                             'conv_me_o_reg': tf.Variable(tf.zeros([4]), trainable=False, name='conv_me_o_reg'),
+                             'conv_me_o_fll': tf.Variable(tf.zeros([10]), trainable=False, name='conv_me_o_fll')}
         conv_o_par_va_EMA = {'conv_va_o_1': tf.Variable(tf.ones([32]), trainable=False, name='conv_va_o_1'),
                              'conv_va_o_2': tf.Variable(tf.ones([64]), trainable=False, name='conv_va_o_2'),
                              'conv_va_o_3': tf.Variable(tf.ones([64]), trainable=False, name='conv_va_o_3'),
                              'conv_va_o_4': tf.Variable(tf.ones([128]), trainable=False, name='conv_va_o_4'),
                              'conv_va_o_5': tf.Variable(tf.ones([256]), trainable=False, name='conv_va_o_5'),
                              'conv_va_o_cls': tf.Variable(tf.ones([2]), trainable=False, name='conv_va_o_cls'),
-                             'conv_va_o_reg': tf.Variable(tf.ones([4]), trainable=False, name='conv_va_o_reg')}
+                             'conv_va_o_reg': tf.Variable(tf.ones([4]), trainable=False, name='conv_va_o_reg'),
+                             'conv_va_o_fll': tf.Variable(tf.ones([10]), trainable=False, name='conv_va_o_fll')}
     for par in [conv_o_par_weight, conv_o_par_bias, conv_o_par_scale_par, conv_o_par_offset_par, conv_o_par_me_EMA,
                 conv_o_par_va_EMA]:
         for value in par.values():
@@ -315,7 +321,6 @@ def conv_net_o(x, dropout, on_train, decay):
     fc_cls = normal(fc_cls, conv_o_par_scale_par['bns_o_cls'], conv_o_par_offset_par['bno_o_cls'],
                     conv_o_par_me_EMA['conv_me_o_cls'], conv_o_par_va_EMA['conv_va_o_cls'], on_train, decay,
                     axes=[0])
-    fc_cls = tf.nn.relu(fc_cls)
     fc_cls = tf.nn.softmax(fc_cls)
     # regression
     fc_reg = tf.matmul(fc5, conv_o_par_weight['full_o_reg'])
@@ -323,13 +328,19 @@ def conv_net_o(x, dropout, on_train, decay):
     fc_reg = normal(fc_reg, conv_o_par_scale_par['bns_o_reg'], conv_o_par_offset_par['bno_o_reg'],
                     conv_o_par_me_EMA['conv_me_o_reg'], conv_o_par_va_EMA['conv_va_o_reg'], on_train, decay,
                     axes=[0])
+    # facial landmark localization
+    fc_fll = tf.matmul(fc5, conv_o_par_weight['full_o_fll'])
+    fc_fll = tf.add(fc_fll, conv_o_par_bias['bias_o_fll'])
+    fc_fll = normal(fc_fll, conv_o_par_scale_par['bns_o_fll'], conv_o_par_offset_par['bno_o_fll'],
+                    conv_o_par_me_EMA['conv_me_o_fll'], conv_o_par_va_EMA['conv_va_o_fll'], on_train, decay,
+                    axes=[0])
+    return fc_cls, fc_reg, fc_fll
 
-    return fc_cls, fc_reg
 
-
-batch_size_pos = 51
-batch_size_part = 51
-batch_size_neg = 154
+batch_size_pos = 26
+batch_size_part = 26
+batch_size_neg = 76
+batch_size_fll = 52
 
 
 # model training
@@ -604,13 +615,17 @@ def training_o_net():
     x = tf.placeholder(tf.float32, [None, 48, 48, 3])
     y = tf.placeholder(tf.float32, [None, 2])
     reg = tf.placeholder(tf.float32, [None, 4])
+    fll = tf.placeholder(tf.float32, [None, 10])
     indicator_det = tf.placeholder(tf.float32, [None, 1])
     indicator_reg = tf.placeholder(tf.float32, [None, 1])
+    indicator_fll = tf.placeholder(tf.float32, [None, 1])
     denote_det = tf.placeholder(tf.float32)
     denote_reg = tf.placeholder(tf.float32)
+    denote_fll = tf.placeholder(tf.float32)
     keep_prob = tf.placeholder(tf.float32)
-    reg_train_data = np.zeros([batch_size_pos + batch_size_part + batch_size_neg, 4], dtype=np.float32)
-    reg_val_data = np.zeros([batch_size_pos + batch_size_part + batch_size_neg, 4], dtype=np.float32)
+
+    reg_train_data = np.zeros([batch_size_pos + batch_size_part + batch_size_neg + batch_size_fll, 4], dtype=np.float32)
+    reg_val_data = np.zeros([batch_size_pos + batch_size_part + batch_size_neg + batch_size_fll, 4], dtype=np.float32)
     y_train_pos, x_train_pos, a_train_pos, GT_train_pos = read_TF_records.from_tfrecords_import_samples('train',
                                                                                                         batch_size_pos,
                                                                                                         None, 48, 'pos')
@@ -631,9 +646,13 @@ def training_o_net():
     y_val_neg, x_val_neg, a_val_neg, GT_val_neg = read_TF_records.from_tfrecords_import_samples('val', batch_size_neg,
                                                                                                 None, 48,
                                                                                                 'neg')
+    x_fll_train, landmark_train = read_TF_records.from_tfrecords_import_samples_lankmark('train', batch_size_fll, None)
+    x_fll_val, landmark_val = read_TF_records.from_tfrecords_import_samples_lankmark('val', batch_size_fll, None)
+    landmark_train = tf.reshape(landmark_train, [-1, 10])
+    landmark_val = tf.reshape(landmark_val, [-1, 10])
     on_train = tf.placeholder(tf.bool)
     decay = tf.placeholder(tf.float32)
-    fc_cls, fc_reg = conv_net_o(x, keep_prob, on_train, decay)
+    fc_cls, fc_reg, fc_fll = conv_net_o(x, keep_prob, on_train, decay)
     with tf.name_scope('loss'):
         # loss_batch = -tf.reduce_sum(y * tf.log(pred), reduction_indices=[1])
         # loss_batch = tf.reshape(loss_batch, [1, 128])
@@ -646,13 +665,24 @@ def training_o_net():
         test1 = tf.reduce_mean(
             -tf.reduce_sum(y * tf.log(fc_cls), reduction_indices=[1], keepdims=True) * indicator_det * denote_det)
         test2 = tf.reduce_mean(tf.norm(reg - fc_reg, axis=1, keepdims=True) * indicator_reg * denote_reg)
+        test3 = tf.reduce_mean(tf.norm(fll - fc_fll, axis=1, keepdims=True) * indicator_fll * denote_fll)
         loss = tf.reduce_mean(
             -tf.reduce_sum(y * tf.log(fc_cls), reduction_indices=[1], keepdims=True) * indicator_det * denote_det +
-            tf.norm(reg - fc_reg, axis=1, keepdims=True) * indicator_reg * denote_reg)
+            tf.norm(reg - fc_reg, axis=1, keepdims=True) * indicator_reg * denote_reg +
+            tf.norm(fll - fc_fll, axis=1, keepdims=True) * indicator_fll * denote_fll)
         tf.summary.scalar('loss', loss)
     optimizer = tf.train.AdamOptimizer(0.005).minimize(loss)
+    acc_ob_fc_cls_pos = tf.slice(fc_cls, [0, 0], [batch_size_pos, 2])
+    acc_ob_fc_cls_neg = tf.slice(fc_cls, [batch_size_pos + batch_size_part, 0],
+                                 [batch_size_pos + batch_size_part + batch_size_neg, 2])
+    acc_ob_y_pos = tf.slice(y, [0, 0], [batch_size_pos, 2])
+    acc_ob_y_neg = tf.slice(y, [batch_size_pos + batch_size_part, 0],
+                            [batch_size_pos + batch_size_part + batch_size_neg, 2])
 
-    correct_pred = tf.equal(tf.argmax(fc_cls, 1), tf.argmax(y, 1))
+    acc_ob_fc_cls = tf.concat([acc_ob_fc_cls_pos, acc_ob_fc_cls_neg], axis=0)
+    acc_ob_y = tf.concat([acc_ob_y_pos, acc_ob_y_neg], axis=0)
+
+    correct_pred = tf.equal(tf.argmax(acc_ob_fc_cls, 1), tf.argmax(acc_ob_y, 1))
     with tf.name_scope('accuracy'):
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
         tf.summary.scalar('acc', accuracy)
@@ -662,67 +692,109 @@ def training_o_net():
     with tf.Session() as sess:
         coord = tf.train.Coordinator()
         merged = tf.summary.merge_all()
-        writer = tf.summary.FileWriter('./logs/logsoldo_reg_like_rpn/', sess.graph)
+        writer = tf.summary.FileWriter('./logs/logsoldo_landmark_like_rpn/', sess.graph)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
         sess.run(tf.global_variables_initializer())
         curr_ti = 0
         print('training...')
-        indicator_det_data = np.ones([batch_size_pos + batch_size_part + batch_size_neg, 1])
+        indicator_det_data = np.ones([batch_size_pos + batch_size_part + batch_size_neg + batch_size_fll, 1])
         indicator_det_data[batch_size_pos:batch_size_pos + batch_size_part] = 0
-        indicator_reg_data = np.ones([batch_size_pos + batch_size_part + batch_size_neg, 1])
+        indicator_det_data[
+        batch_size_pos + batch_size_part + batch_size_neg:
+        batch_size_pos + batch_size_part + batch_size_neg + batch_size_fll] = 0
+
+        indicator_reg_data = np.ones([batch_size_pos + batch_size_part + batch_size_neg + batch_size_fll, 1])
         indicator_reg_data[
-        batch_size_pos + batch_size_part:batch_size_pos + batch_size_part + batch_size_neg] = 0
-        for i in range(15000):
-            x_train_pos_data, y_train_pos_data, a_train_pos_data, GT_train_pos_data, x_train_part_data, y_train_part_data, a_train_part_data, GT_train_part_data, x_train_neg_data, y_train_neg_data, a_train_neg_data, GT_train_neg_data = sess.run(
+        batch_size_pos + batch_size_part:batch_size_pos + batch_size_part + batch_size_neg + batch_size_fll] = 0
+
+        indicator_fll_data = np.ones([batch_size_pos + batch_size_part + batch_size_neg + batch_size_fll, 1])
+        indicator_fll_data[0:batch_size_pos + batch_size_part + batch_size_neg] = 0
+
+        for i in range(50000):
+            x_train_pos_data, y_train_pos_data, a_train_pos_data, GT_train_pos_data, x_train_part_data, y_train_part_data, a_train_part_data, GT_train_part_data, x_train_neg_data, y_train_neg_data, a_train_neg_data, GT_train_neg_data, x_fll_train_data, landmark_train_data = sess.run(
                 [x_train_pos, y_train_pos, a_train_pos, GT_train_pos, x_train_part, y_train_part, a_train_part,
-                 GT_train_part, x_train_neg, y_train_neg, a_train_neg, GT_train_neg])
-            x_train_data = np.append(x_train_pos_data, np.append(x_train_part_data, x_train_neg_data, axis=0),
-                                     axis=0) / 255. - 0.5
-            a_train_data = np.append(a_train_pos_data, np.append(a_train_part_data, a_train_neg_data, axis=0), axis=0)
-            GT_train_data = np.append(GT_train_pos_data, np.append(GT_train_part_data, GT_train_neg_data, axis=0),
-                                      axis=0)
+                 GT_train_part, x_train_neg, y_train_neg, a_train_neg, GT_train_neg, x_fll_train, landmark_train])
+            x_train_data = np.append(np.append(x_train_pos_data, np.append(x_train_part_data, x_train_neg_data, axis=0),
+                                               axis=0), x_fll_train_data, axis=0) / 255. - 0.5
+
+            a_train_data = np.append(
+                np.append(a_train_pos_data, np.append(a_train_part_data, a_train_neg_data, axis=0), axis=0),
+                np.ones([batch_size_fll, 4], dtype=np.float32), axis=0)
+            GT_train_data = np.append(
+                np.append(GT_train_pos_data, np.append(GT_train_part_data, GT_train_neg_data, axis=0),
+                          axis=0), np.ones([batch_size_fll, 4], dtype=np.float32), axis=0)
             reg_train_data[:, 0] = (GT_train_data[:, 0] + GT_train_data[:, 2] / 2. - a_train_data[:, 0] -
                                     a_train_data[:, 2] / 2.) / a_train_data[:, 2].astype(np.float32)
             reg_train_data[:, 1] = (GT_train_data[:, 1] + GT_train_data[:, 3] / 2 - a_train_data[:, 1] -
                                     a_train_data[:, 3] / 2.) / a_train_data[:, 3].astype(np.float32)
             reg_train_data[:, 2] = np.log(GT_train_data[:, 2] / a_train_data[:, 2].astype(np.float32))
             reg_train_data[:, 3] = np.log(GT_train_data[:, 3] / a_train_data[:, 3].astype(np.float32))
+            reg_train_data[batch_size_pos + batch_size_part + batch_size_neg:] = 0.
 
-            y_train_data = np.append(y_train_pos_data, np.append(y_train_part_data, y_train_neg_data, axis=0), axis=0)
+            fll_train_data = np.append(
+                np.zeros([batch_size_pos + batch_size_part + batch_size_neg, 10], dtype=np.float32),
+                landmark_train_data, axis=0)
+
+            y_train_data = np.append(
+                np.append(y_train_pos_data, np.append(y_train_part_data, y_train_neg_data, axis=0), axis=0),
+                np.zeros([batch_size_fll, 2], dtype=np.int8), axis=0)
+
             sess.run(optimizer,
-                     feed_dict={x: x_train_data, y: y_train_data, reg: reg_train_data,
-                                indicator_det: indicator_det_data, indicator_reg: indicator_reg_data, on_train: True,
-                                decay: 0.5, denote_det: 1.25, denote_reg: 1.25,
+                     feed_dict={x: x_train_data, y: y_train_data, reg: reg_train_data, fll: fll_train_data,
+                                indicator_det: indicator_det_data, indicator_reg: indicator_reg_data,
+                                indicator_fll: indicator_fll_data, on_train: True,
+                                decay: 0.5, denote_det: 1.25, denote_reg: 1.25, denote_fll: 2.5 / 100.,
                                 keep_prob: 0.5})
+            # x_train_data[10:20] = x_train_data[150:160]
+            tt_ffl, tt_fc_cls, tt_fc_reg, tt_1, tt_2, tt_3, tt_los = sess.run(
+                [fc_fll, fc_cls, fc_reg, test1, test2, test3, loss],
+                feed_dict={x: x_train_data, y: y_train_data,
+                           reg: reg_train_data,
+                           fll: fll_train_data,
+                           indicator_det: indicator_det_data,
+                           indicator_reg: indicator_reg_data,
+                           indicator_fll: indicator_fll_data,
+                           on_train: True,
+                           decay: 0.5, denote_det: 1.25,
+                           denote_reg: 1.25,
+                           denote_fll: 2.5 / 100.,
+                           keep_prob: 0.5})
             if i % 100 == 0:
-                x_val_pos_data, y_val_pos_data, a_val_pos_data, GT_val_pos_data, x_val_part_data, y_val_part_data, a_val_part_data, GT_val_part_data, x_val_neg_data, y_val_neg_data, a_val_neg_data, GT_val_neg_data = sess.run(
+                x_val_pos_data, y_val_pos_data, a_val_pos_data, GT_val_pos_data, x_val_part_data, y_val_part_data, a_val_part_data, GT_val_part_data, x_val_neg_data, y_val_neg_data, a_val_neg_data, GT_val_neg_data, x_fll_val_data, landmark_val_data = sess.run(
                     [x_val_pos, y_val_pos, a_val_pos, GT_val_pos, x_val_part, y_val_part, a_val_part, GT_val_part,
-                     x_val_neg, y_val_neg, a_val_neg, GT_val_neg])
-                x_val_data = np.append(x_val_pos_data, np.append(x_val_part_data, x_val_neg_data, axis=0),
-                                       axis=0) / 255. - 0.5
-                a_val_data = np.append(a_val_pos_data, np.append(a_val_part_data, a_val_neg_data, axis=0),
-                                       axis=0)
-                GT_val_data = np.append(GT_val_pos_data, np.append(GT_val_part_data, GT_val_neg_data, axis=0),
-                                        axis=0)
+                     x_val_neg, y_val_neg, a_val_neg, GT_val_neg, x_fll_val, landmark_val])
+                x_val_data = np.append(np.append(x_val_pos_data, np.append(x_val_part_data, x_val_neg_data, axis=0),
+                                                 axis=0), x_fll_val_data, axis=0) / 255. - 0.5
+                a_val_data = np.append(np.append(a_val_pos_data, np.append(a_val_part_data, a_val_neg_data, axis=0),
+                                                 axis=0), np.ones([batch_size_fll, 4], dtype=np.float32), axis=0)
+                GT_val_data = np.append(np.append(GT_val_pos_data, np.append(GT_val_part_data, GT_val_neg_data, axis=0),
+                                                  axis=0), np.ones([batch_size_fll, 4], dtype=np.float32), axis=0)
                 reg_val_data[:, 0] = (GT_val_data[:, 0] + GT_val_data[:, 2] / 2. - a_val_data[:, 0] -
                                       a_val_data[:, 2] / 2.) / a_val_data[:, 2].astype(np.float32)
                 reg_val_data[:, 1] = (GT_val_data[:, 1] + GT_val_data[:, 3] / 2 - a_val_data[:, 1] -
                                       a_val_data[:, 3] / 2.) / a_val_data[:, 3].astype(np.float32)
                 reg_val_data[:, 2] = np.log(GT_val_data[:, 2] / a_val_data[:, 2].astype(np.float32))
                 reg_val_data[:, 3] = np.log(GT_val_data[:, 3] / a_val_data[:, 3].astype(np.float32))
-                y_val_data = np.append(y_val_pos_data, np.append(y_val_part_data, y_val_neg_data, axis=0),
-                                       axis=0)
-                t1, t2, rs, los, acc = sess.run([test1, test2, merged, loss, accuracy],
-                                                feed_dict={x: x_val_data, y: y_val_data, reg: reg_val_data,
-                                                           indicator_det: indicator_det_data,
-                                                           indicator_reg: indicator_reg_data,
-                                                           on_train: False,
-                                                           decay: 0.5, denote_det: 1.25, denote_reg: 1.25,
-                                                           keep_prob: 1.})
+
+                fll_val_data = np.append(
+                    np.zeros([batch_size_pos + batch_size_part + batch_size_neg, 10], dtype=np.float32),
+                    landmark_val_data, axis=0)
+                y_val_data = np.append(np.append(y_val_pos_data, np.append(y_val_part_data, y_val_neg_data, axis=0),
+                                                 axis=0), np.zeros([batch_size_fll, 2], dtype=np.int8), axis=0)
+                rs, los, acc = sess.run([merged, loss, accuracy],
+                                        feed_dict={x: x_val_data, y: y_val_data, reg: reg_val_data,
+                                                   indicator_det: indicator_det_data,
+                                                   indicator_reg: indicator_reg_data,
+                                                   indicator_fll: indicator_fll_data,
+                                                   fll: fll_val_data,
+                                                   on_train: False,
+                                                   decay: 0.5, denote_det: 1.25, denote_reg: 1.25,
+                                                   denote_fll: 2.5 / 100.,
+                                                   keep_prob: 1.})
                 writer.add_summary(rs, i)
                 print('the %d times,Loss=%f,acc=%f,spend:%fs' % (i, los, acc, time.clock() - curr_ti))
                 curr_ti = time.clock()
-        print('Save para in ', saver_conv.save(sess, './model/conv_o_net_12_15000.ckpt'))
+        print('Save para in ', saver_conv.save(sess, './model/conv_o_net_12_landmark.ckpt'))
         coord.request_stop()
         coord.join(threads)
     sess.close()
@@ -830,11 +902,12 @@ def from_ckpt_import_o_net():
     x = tf.placeholder(tf.float32, [None, 48, 48, 3])
     y = tf.placeholder(tf.float32, [None, 2])
     keep_prob = tf.placeholder(tf.float32)
-    y_val_pos, x_val_pos, _, _ = read_TF_records.from_tfrecords_import_samples('val', 1, None, 48, 'pos')
-    y_val_neg, x_val_neg, _, _ = read_TF_records.from_tfrecords_import_samples('val', 127, None, 48, 'neg')
+    images_landmark, _ = read_TF_records.from_tfrecords_import_samples_lankmark('train', 127, None)
+    y_val_pos, x_val_pos, _, _ = read_TF_records.from_tfrecords_import_samples('val', 127, None, 48, 'pos')
+    y_val_neg, x_val_neg, _, _ = read_TF_records.from_tfrecords_import_samples('val', 1, None, 48, 'neg')
     on_train = tf.placeholder(tf.bool)
     decay = tf.placeholder(tf.float32)
-    pred, _ = conv_net_o(x, keep_prob, on_train, decay)
+    pred, _, landmark = conv_net_o(x, keep_prob, on_train, decay)
     with tf.name_scope('loss'):
         loss = tf.reduce_mean(-tf.reduce_sum(y * tf.log(pred), reduction_indices=[1]))
 
@@ -848,22 +921,85 @@ def from_ckpt_import_o_net():
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
         sess.run(tf.global_variables_initializer())
-        saver_conv.restore(sess, './model/conv_o_net_12_15000.ckpt')
+        saver_conv.restore(sess, './model/conv_o_net_12_landmark.ckpt')
         curr_ti = 0
         print('testing...')
         entirety_acc = 0
         for i in range(100):
             x_val_pos_data, y_val_pos_data, x_val_neg_data, y_val_neg_data = sess.run(
-                [x_val_pos, y_val_pos, x_val_neg, y_val_neg])
+                [images_landmark, y_val_pos, x_val_neg, y_val_neg])
             x_val_data = np.append(x_val_pos_data, x_val_neg_data, axis=0) / 255. - 0.5
             y_val_data = np.append(y_val_pos_data, y_val_neg_data, axis=0)
-            los, acc = sess.run([loss, accuracy],
-                                feed_dict={x: x_val_data, y: y_val_data, on_train: False,
-                                           decay: 0.5, keep_prob: 1.})
+            los, acc, lanm = sess.run([loss, accuracy, landmark],
+                                      feed_dict={x: x_val_data, y: y_val_data, on_train: False,
+                                                 decay: 0.5, keep_prob: 1.})
             entirety_acc += acc
             print('the %d times,Loss=%f,acc=%f,spend:%fs' % (i, los, acc, time.clock() - curr_ti))
             curr_ti = time.clock()
         print('entirety acc is:%f' % entirety_acc)
+        coord.request_stop()
+        coord.join(threads)
+    sess.close()
+
+
+# test for landmark
+def from_ckpt_testing_landmark_acc(im=[]):
+    # training set
+    tf.reset_default_graph()
+    init_par_o()
+    x = tf.placeholder(tf.float32, [None, 48, 48, 3])
+    fll = tf.placeholder(tf.float32, [None, 10])
+    keep_prob = tf.placeholder(tf.float32)
+    _, x_val_pos, _, _ = read_TF_records.from_tfrecords_import_samples('val', 1, None, 48, 'pos')
+    images_landmark, fll_land = read_TF_records.from_tfrecords_import_samples_lankmark('val', 1, None)
+    fll_land = tf.reshape(fll_land, [-1, 10])
+    on_train = tf.placeholder(tf.bool)
+    decay = tf.placeholder(tf.float32)
+    _, _, landmark = conv_net_o(x, keep_prob, on_train, decay)
+    with tf.name_scope('loss'):
+        loss = tf.reduce_mean(tf.norm(fll - landmark, axis=1, keepdims=True))
+
+    conv_vars = tf.get_collection('conv_o')
+    saver_conv = tf.train.Saver(conv_vars)
+    with tf.Session() as sess:
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+        sess.run(tf.global_variables_initializer())
+        saver_conv.restore(sess, './model/conv_o_net_12_landmark.ckpt')
+        curr_ti = 0
+        print('testing...')
+        entirety_los = 0
+        for i in range(100):
+            x_val_data1, fll_land_data1 = sess.run([images_landmark, fll_land])
+            x_val_data2, fll_land_data2 = sess.run([x_val_pos, fll_land])
+            # cv2.imwrite('./imgs/ob_1.jpg', x_val_data[0])
+            if len(im) != 0:
+                x_val_data1 = im
+            x_val_data1 = x_val_data1 / 255. - 0.5
+            los, land = sess.run([loss, landmark],
+                                 feed_dict={x: x_val_data1, fll: fll_land_data1, on_train: False,
+                                            decay: 0.5, keep_prob: 1.})
+            im1 = x_val_data1[0] + 0.5
+            for i in range(5):
+                im1 = cv2.circle(im1, tuple(np.round(land[0, i * 2:i * 2 + 2]).astype(np.int32).tolist()), 1,
+                                 (255., 0, 0), 2)
+            cv2.imshow('test', im1)
+
+            x_val_data2 = x_val_data2 / 255. - 0.5
+            los, land = sess.run([loss, landmark],
+                                 feed_dict={x: x_val_data2, fll: fll_land_data2, on_train: False,
+                                            decay: 0.5, keep_prob: 1.})
+            im2 = x_val_data2[0] + 0.5
+            for i in range(5):
+                im2 = cv2.circle(im2, tuple(np.round(land[0, i * 2:i * 2 + 2]).astype(np.int32).tolist()), 1,
+                                 (255., 0, 0), 2)
+            cv2.imshow('test2', im2)
+            if cv2.waitKey() == ord('q'):
+                break
+            entirety_los += los
+            print('the %d times,Loss=%f,spend:%fs' % (i, los, time.clock() - curr_ti))
+            curr_ti = time.clock()
+        print('entirety acc is:%f' % entirety_los)
         coord.request_stop()
         coord.join(threads)
     sess.close()
@@ -957,7 +1093,7 @@ def from_estimate_import_anchor_rect(conf_map, bbox_reg, threshold, scale_re, zo
             anchor_rect_scale.append([x, y, w, h, conf_map[scale, pos[0][pos_index], pos[1][pos_index]], id])
             id += 1
         # local NMS
-        anchor_rect_scale_NMS = NMS_anchor_rect(anchor_rect_scale, iou_threshold)
+        anchor_rect_scale_NMS, _ = NMS_anchor_rect(anchor_rect_scale, iou_threshold)
         # regression
         for index in range(len(anchor_rect_scale_NMS)):
             for reg_meta in regression_scale:
@@ -981,9 +1117,12 @@ def from_estimate_import_anchor_rect(conf_map, bbox_reg, threshold, scale_re, zo
 # require:
 # 1.The list of anchor rectangle with confident score:[[x,y,w,h,score,id]...]
 # 2.The threshold of iou
+# 3.optional The landmark need to filter
 # return:
 # 1.The list of anchor rectangle with confident score after NMS:[[x,y,w,h,score,id]...]
-def NMS_anchor_rect(anchor_rect, iou_threshold):
+# 2.Filtered landmark
+def NMS_anchor_rect(anchor_rect, iou_threshold, landmark=[]):
+    filtered_landmark = []
     anchor_rect_array = np.array(anchor_rect).reshape([-1, 6])
     score_array = anchor_rect_array[:, 4].reshape([-1, 1])
     filtered_anchor_rect = []
@@ -1011,19 +1150,30 @@ def NMS_anchor_rect(anchor_rect, iou_threshold):
                     same_one = True
         if not same_one:
             filtered_anchor_rect.append(check_arect.tolist())
+            if not len(landmark) == 0:
+                filtered_landmark.append(landmark[max_score_index])
+        if not len(landmark) == 0:
+            landmark = np.delete(landmark, max_score_index, axis=0)
         anchor_rect_array = np.delete(anchor_rect_array, max_score_index, axis=0)
         score_array = np.delete(score_array, max_score_index, axis=0)
-    return filtered_anchor_rect
+    return filtered_anchor_rect, filtered_landmark
 
 
 # show anchor rectangle in origin image
 # require:
 # 1.origin image(3 dimension)
 # 2.The set of anchor rectangle with confident score:[[x,y,w,h,score,id]...]
-def from_anchor_rect_show_detective(im, anchor_rect):
+# 3.The landmark of face
+def from_anchor_rect_show_detective(im, anchor_rect, landmark):
+    index = 0
     for rect in anchor_rect:
         im = cv2.rectangle(im, (int(rect[0]), int(rect[1])), (int(rect[0] + rect[2]), int(rect[1] + rect[3])),
                            (0, 0, 255))
+        if len(landmark) != 0:
+            for i in range(5):
+                im = cv2.circle(im, tuple((np.round(landmark[index][0, i * 2:i * 2 + 2]).astype(np.int32) + np.array(
+                    [int(rect[0]), int(rect[1])]).reshape([1, 2])).tolist()[0]), 1, (255, 0, 0), 2)
+            index += 1
     cv2.imshow('test', im)
     cv2.waitKey()
 
@@ -1039,6 +1189,7 @@ def filter_image_set_by_r_net(im, filter_name, anchor_rect, scale, filter_thresh
         init_par_o()
     if len(anchor_rect) == 0:
         return anchor_rect
+    scale_set = []
     im_HEIGHT, im_WIDTH = im.shape[0:2]
     zero_temp = np.zeros([3 * im_HEIGHT, 3 * im_WIDTH, 3], dtype=np.uint8)
     zero_temp[im_HEIGHT:2 * im_HEIGHT, im_WIDTH:2 * im_WIDTH] = im
@@ -1048,6 +1199,7 @@ def filter_image_set_by_r_net(im, filter_name, anchor_rect, scale, filter_thresh
               im_WIDTH + int(anchor_rect[0][0]):im_WIDTH + int(anchor_rect[0][0] +
                                                                anchor_rect[0][2])]
 
+    scale_set.append(im_rect.shape[0] / float(scale))
     im_rect = cv2.resize(im_rect, (scale, scale))
     im_array = im_rect.reshape([1, scale, scale, 3])
     for rect in anchor_rect[1:]:
@@ -1055,6 +1207,7 @@ def filter_image_set_by_r_net(im, filter_name, anchor_rect, scale, filter_thresh
         rect_du[0] = rect_du[0] + im_WIDTH
         rect_du[1] = rect_du[1] + im_HEIGHT
         im_rect = im[int(rect_du[1]):int(rect_du[1] + rect_du[3]), int(rect_du[0]):int(rect_du[0] + rect_du[2])]
+        scale_set.append(im_rect.shape[0] / float(scale))
         im_rect = cv2.resize(im_rect, (scale, scale))
         im_array = np.append(im_array, im_rect.reshape([1, scale, scale, 3]), axis=0)
     im_array = im_array / 255. - 0.5
@@ -1067,7 +1220,7 @@ def filter_image_set_by_r_net(im, filter_name, anchor_rect, scale, filter_thresh
     if filter_name[0:6] == 'conv_r':
         fc_cls, fc_reg = conv_net_r(x, keep_prob, on_train, decay)
     elif filter_name[0:6] == 'conv_o':
-        fc_cls, fc_reg = conv_net_o(x, keep_prob, on_train, decay)
+        fc_cls, fc_reg, fc_landmark = conv_net_o(x, keep_prob, on_train, decay)
 
     conv_vars = tf.get_collection(filter_name[0:6])
     saver_conv = tf.train.Saver(conv_vars)
@@ -1077,13 +1230,18 @@ def filter_image_set_by_r_net(im, filter_name, anchor_rect, scale, filter_thresh
         sess.run(tf.global_variables_initializer())
         saver_conv.restore(sess, './model/%s.ckpt' % filter_name)
         print('testing...')
-        cls, reg = sess.run([fc_cls, fc_reg],
-                            feed_dict={x: im_array, on_train: False, decay: 0.5, keep_prob: 1.})
+        if filter_name[0:6] == 'conv_r':
+            cls, reg = sess.run([fc_cls, fc_reg],
+                                feed_dict={x: im_array, on_train: False, decay: 0.5, keep_prob: 1.})
+        elif filter_name[0:6] == 'conv_o':
+            cls, reg, landmark = sess.run([fc_cls, fc_reg, fc_landmark],
+                                          feed_dict={x: im_array, on_train: False, decay: 0.5, keep_prob: 1.})
         coord.request_stop()
         coord.join(threads)
     sess.close()
     # filter
     anchor_rect_filter = []
+    landmark_filter = []
     for i in range(cls.shape[0]):
         if cls[i, 1] > filter_threshold:
             # regression
@@ -1095,9 +1253,27 @@ def filter_image_set_by_r_net(im, filter_name, anchor_rect, scale, filter_thresh
             w = np.exp(reg[i, 2]) * anchor_rect[i][2]
             h = np.exp(reg[i, 3]) * anchor_rect[i][3]
             anchor_rect_filter.append([x, y, w, h, anchor_rect[i][4], anchor_rect[i][5]])
-            # anchor_rect_filter.append(anchor_rect[i])
+            if filter_name[0:6] == 'conv_o':
+                ori_landmark = landmark[i]
+                offset_landmark = np.array([anchor_rect[i][2] * ((1 - np.exp(reg[i, 2])) / 2.),
+                                            anchor_rect[i][3] * ((1 - np.exp(reg[i, 3])) / 2.),
+                                            anchor_rect[i][2] * ((1 - np.exp(reg[i, 2])) / 2.),
+                                            anchor_rect[i][3] * ((1 - np.exp(reg[i, 3])) / 2.),
+                                            anchor_rect[i][2] * ((1 - np.exp(reg[i, 2])) / 2.),
+                                            anchor_rect[i][3] * ((1 - np.exp(reg[i, 3])) / 2.),
+                                            anchor_rect[i][2] * ((1 - np.exp(reg[i, 2])) / 2.),
+                                            anchor_rect[i][3] * ((1 - np.exp(reg[i, 3])) / 2.),
+                                            anchor_rect[i][2] * ((1 - np.exp(reg[i, 2])) / 2.),
+                                            anchor_rect[i][3] * ((1 - np.exp(reg[i, 3])) / 2.),
+                                            ]).reshape([1, 10])
+                scale_landmark = np.array([np.exp(reg[i, 2]), np.exp(reg[i, 3]),
+                                           np.exp(reg[i, 2]), np.exp(reg[i, 3]),
+                                           np.exp(reg[i, 2]), np.exp(reg[i, 3]),
+                                           np.exp(reg[i, 2]), np.exp(reg[i, 3]),
+                                           np.exp(reg[i, 2]), np.exp(reg[i, 3])]).reshape([1, 10])
+                landmark_filter.append((ori_landmark * scale_set[i]) * scale_landmark)
 
-    return anchor_rect_filter
+    return anchor_rect_filter, landmark_filter
 
 
 def once_detective_pipline(im):
@@ -1114,12 +1290,14 @@ def once_detective_pipline(im):
     anchor_rect_p = from_estimate_import_anchor_rect(conf_map, bbox_reg, filter_threshold_p, scale_P, zoom_scale_P,
                                                      iou_threshold,
                                                      keep_square=True)
-    anchor_rect_r = filter_image_set_by_r_net(im, 'conv_r_net_12_100000', anchor_rect_p, scale_R, filter_threshold_r,
-                                              keep_square=True)
-    anchor_rect_o = filter_image_set_by_r_net(im, 'conv_o_net_12_15000', anchor_rect_r, scale_o, filter_threshold_o,
-                                              keep_square=False)
-    out = NMS_anchor_rect(anchor_rect_o, iou_threshold)
-    from_anchor_rect_show_detective(im, out)
+    anchor_rect_r, landmark_r = filter_image_set_by_r_net(im, 'conv_r_net_12_100000', anchor_rect_p, scale_R,
+                                                          filter_threshold_r,
+                                                          keep_square=True)
+    anchor_rect_o, landmark_o = filter_image_set_by_r_net(im, 'conv_o_net_12_landmark', anchor_rect_r, scale_o,
+                                                          filter_threshold_o,
+                                                          keep_square=False)
+    out, landmark_o_f = NMS_anchor_rect(anchor_rect_o, iou_threshold, landmark_o)
+    from_anchor_rect_show_detective(im, out, landmark_o_f)
 
 
 if __name__ == '__main__':
@@ -1129,16 +1307,27 @@ if __name__ == '__main__':
     # from_ckpt_import_r_net()
     # training_o_net()
     # from_ckpt_import_o_net()
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        print('error in open cap...')
-    while True:
-        ret, im = cap.read()
-        cv2.imshow('test', im)
-        key = cv2.waitKey(30)
-        if key == ord('q'):
-            break
-        elif key == ord('d'):
-            once_detective_pipline(im)
+
+    # im = cv2.imread('./imgs/test1.png')
+    # test = np.zeros([48, 48, 3], dtype=np.uint8)
+    # im = cv2.resize(im, (38, 38))
+    # test[5:43, 5:43] = im
+    # test=test.reshape([1, 48, 48, 3])
+    # from_ckpt_testing_landmark_acc(test)
+
+    im = cv2.imread('./imgs/img_18.jpg')
+    once_detective_pipline(im)
+
+    # cap = cv2.VideoCapture(0)
+    # if not cap.isOpened():
+    #     print('error in open cap...')
+    # while True:
+    #     ret, im = cap.read()
+    #     cv2.imshow('test', im)
+    #     key = cv2.waitKey(30)
+    #     if key == ord('q'):
+    #         break
+    #     elif key == ord('d'):
+    #         once_detective_pipline(im)
 
     a = 1
